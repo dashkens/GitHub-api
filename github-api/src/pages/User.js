@@ -4,18 +4,27 @@ import { Link, useParams } from 'react-router-dom'
 import GithubContext from '../context/github/GithubContext'
 import Spinner from '../components/layout/Spinner'
 import RepoList from '../components/users/RepoList'
+import { getUser, getUserRepos } from '../context/github/GithubActions'
 
 
 export default function User() {
     
-    const {getUser, user, loading, getUserRepos, repos} = useContext(GithubContext)
+    const { user, loading, repos, dispatch} = useContext(GithubContext)
 
     const params = useParams()
 
     useEffect(()=> {
-        getUser(params.login)
-        getUserRepos(params.login)
-    },[])
+        dispatch({type: 'SET_LOADING'})
+        const getUserData = async() => {
+            const userData = await getUser(params.login)
+            dispatch({type: 'GET_USER', payload: userData})
+
+            const userRepoData = await getUserRepos(params.login)
+            dispatch({type: 'GET_REPOS', payload: userRepoData})
+        }
+
+        getUserData()
+    },[dispatch, params.login])
 
     const {
         name,
@@ -51,11 +60,13 @@ export default function User() {
                             <figure>
                                 <img src={avatar_url} alt="" />
                             </figure>
-                            <div className="card-body justify-end">
-                                <h2 className="card-title mb-0">
-                                    {name}
-                                </h2>
-                                <p className='flex-grow-0'>{login}</p>
+                            <div className="card-body justify-end ">
+                                <div className="bg-base-100 bg-opacity-30 p-3 rounded-md ">
+                                    <h2 className="card-title mb-0 ">
+                                        {name}
+                                    </h2>
+                                    <p className='flex-grow-0'>{login}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
